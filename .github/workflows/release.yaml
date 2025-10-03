@@ -183,7 +183,7 @@ jobs:
         with:
           subject: "sha1:${{ github.sha }}"
           policy: "git+https://github.com/${{ github.repository }}#policies/release-preflight.json"
-          collector: "note:https://github.com/${{ github.repository }}@${{ github.sha }}"
+          collector: "jsonl:.attestations/attestations.bundle.jsonl"
           attest: false
 
       ## Run the build script
