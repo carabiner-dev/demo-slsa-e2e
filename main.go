@@ -8,6 +8,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/carabiner-dev/attestation"
+	"github.com/carabiner-dev/collector/predicate/generic"
+	"github.com/carabiner-dev/collector/statement/intoto"
+	"github.com/carabiner-dev/hasher"
+	"github.com/fatih/color"
 	// Here we force the import of hashicorp/go-getter v1.7.9 which pulls
 	// in CVE-2025-8959 and in the transitives CVE-2020-8912 and CVE-2020-8911.
 	// Since we are only including the module, it does not affect the project,
@@ -16,14 +21,7 @@ import (
 	// ... perfect for VEXing :)
 	//
 	_ "github.com/hashicorp/go-getter"
-
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-
-	"github.com/carabiner-dev/attestation"
-	"github.com/carabiner-dev/collector/predicate/generic"
-	"github.com/carabiner-dev/collector/statement/intoto"
-	"github.com/carabiner-dev/hasher"
 )
 
 // Our custom predicate schema: "is it Friday?"
@@ -71,7 +69,7 @@ func main() {
 	_ = root.MarkFlagRequired("subject") //nolint:errcheck
 
 	if err := root.Execute(); err != nil {
-		color.New(color.FgHiYellow).Fprintf(os.Stderr, "%s error: %v\n", color.RedString("✖"), err) //nolint:errcheck
+		color.New(color.FgHiYellow).Fprintf(os.Stderr, "%s error: %v\n", color.RedString("✖"), err) //nolint:errcheck,gosec
 		os.Exit(1)
 	}
 }
@@ -86,7 +84,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println()
-	color.New(color.FgHiWhite, color.Bold).Println("  ✨ Generating in-toto attestation") //nolint:errcheck
+	color.New(color.FgHiWhite, color.Bold).Println("  ✨ Generating in-toto attestation") //nolint:errcheck,gosec
 	fmt.Println()
 
 	fmt.Print("  • ")
@@ -115,10 +113,10 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 
 	if isFriday {
 		fmt.Print("  • ")
-		color.New(color.FgGreen, color.Bold).Println("🎉 T.G.I.F.! It *is* a Friday build. No need to deploy, woohoo!") //nolint:errcheck
+		color.New(color.FgGreen, color.Bold).Println("🎉 T.G.I.F.! It *is* a Friday build. No need to deploy, woohoo!") //nolint:errcheck,gosec
 	} else {
 		fmt.Print("  • ")
-		color.New(color.FgBlue, color.Bold).Println("🧊 Not Friday. Stay cool and ship.") //nolint:errcheck
+		color.New(color.FgBlue, color.Bold).Println("🧊 Not Friday. Stay cool and ship.") //nolint:errcheck,gosec
 	}
 
 	// Create the statement
@@ -163,7 +161,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		color.HiWhite("✅ Done!")
 	}
 
-	color.New(color.FgHiCyan, color.Bold).Print("🔐 Pro-tip!") //nolint:errcheck
+	color.New(color.FgHiCyan, color.Bold).Print("🔐 Pro-tip!") //nolint:errcheck,gosec
 	color.HiCyan(" Sign your JSON with bnd for extra ✨ vibes.")
 	fmt.Println()
 
