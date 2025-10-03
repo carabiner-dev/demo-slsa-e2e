@@ -124,32 +124,32 @@ performs the [verifications suggested in the SLSA spec](https://slsa.dev/spec/v1
 policies from AMPEL’s community repository:
 
 ```json
-   "policies": \[  
-        {  
-            "id": "slsa-builder-id",  
-            "source": {  
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies\#slsa/slsa-builder-id.json" }  
+   "policies": [
+        {
+            "id": "slsa-builder-id",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
+            },
+            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }  
+        },
+        {
+            "id": "slsa-build-type",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
             },  
-            "meta": { "controls": \[ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL\_3" } \] }  
-        },  
-        {  
-            "id": "slsa-build-type",  
-            "source": {  
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies\#slsa/slsa-build-type.json" }  
-            },  
-            "meta": { "controls": \[ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL\_3" } \] }  
-        },  
-        {  
-            "id": "slsa-build-point",  
-            "source": {  
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies\#slsa/slsa-build-point.json" }  
-            },  
+            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
+        },
+        {
+            "id": "slsa-build-point",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
+            },
             "meta": {  
-                "controls": \[ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL\_3" } \],  
-                "enforce": "OFF"  
-            }  
-        }  
-    \]
+                "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ],
+                "enforce": "OFF"
+            }
+        }
+    ]
 ```
 
 The policies are referenced remotely but if you look at each policy, you’ll see
@@ -230,7 +230,7 @@ to all the collected attestations, stopping the workflow if anything goes wrong.
     uses: carabiner-dev/actions/ampel/verify@HEAD  
     with:  
       subject: "sha1:${{ github.sha }}"  
-      policy: "git+https://github.com/${{ github.repository }}\#policies/release-preflight.json"  
+      policy: "git+https://github.com/${{ github.repository }}#policies/release-preflight.json"  
       collector: "jsonl:.attestations/attestations.bundle.jsonl"  
       attest: false  
 ```
@@ -274,7 +274,7 @@ the artifacts, their build environment, and their configuration:
       # Generate the provenance attestation with the Tejolote attester  
       tejolote attest github://${{github.repository}}/"${GITHUB_RUN_ID}" \
         --artifacts file:$(pwd)/bin/ \
-        --output .attestations/provenance.json \--slsa="1.0" \
+        --output .attestations/provenance.json --slsa="1.0" \
         --vcs-url=cgr.dev/chainguard/go@${{ steps.digests.outputs.builder }}
 
       # Sign the provenance attestation  
