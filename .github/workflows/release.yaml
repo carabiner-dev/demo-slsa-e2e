@@ -79,7 +79,6 @@ jobs:
       
       - name: 📜 Generate SBOM
         run: |
-          mkdir attestations
           unpack extract . --ignore-other-codebases -f spdx --attest > .attestations/spdx.intoto.json
           bnd statement .attestations/spdx.intoto.json >> .attestations/attestations.bundle.jsonl
           echo "" >> .attestations/attestations.bundle.jsonl
