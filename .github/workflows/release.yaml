@@ -127,26 +127,6 @@ jobs:
         id: tag
         run: echo "tag_name=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
   
-      ## Run the build script
-      - name: 👷‍♀️ Build the Project
-        id: build
-        run: |
-          ./build.sh
-
-      # Here, we fen
-      - name: 🌶️ Generate SLSA Provenance Attestation
-        id: tejolote        
-        run: |
-            # Generate the provenance attestation with the Tejolote attester
-            tejolote attest github://${{github.repository}}/"${GITHUB_RUN_ID}" \
-              --artifacts file:$(pwd)/bin/ \
-              --output .attestations/provenance.json --slsa="1.0" \
-              --vcs-url=cgr.dev/chainguard/go@${{ steps.digests.outputs.builder }}
-
-            # Sign the provenance attestation
-            bnd statement .attestations/provenance.json >> .attestations/attestations.bundle.jsonl
-            echo "" >> .attestations/attestations.bundle.jsonl
-
       - name: Generate Vulnerability Scan
         uses: google/osv-scanner-action/osv-scanner-action@e92b5d07338d4f0ba0981dffed17c48976ca4730 # v2.2.3
         continue-on-error: true
@@ -196,6 +176,35 @@ jobs:
 
           cat .attestations/rest.bundle.json >> .attestations/attestations.bundle.jsonl
           echo "" >> .attestations/attestations.bundle.jsonl
+
+      # Gate the build enforcin the preflight policy
+      - name: 🔴🟡🟢 Run Release Pre-flight Verification
+        uses: carabiner-dev/actions/ampel/verify@HEAD
+        with:
+          subject: "sha1:${{ github.sha }}"
+          policy: "git+https://github.com/${{ github.repository }}#policies/release-preflight.json"
+          collector: "note:https://github.com/${{ github.repository }}@${{ github.sha }}"
+          attest: false
+
+      ## Run the build script
+      - name: 👷‍♀️ Build the Project
+        id: build
+        run: |
+          ./build.sh
+
+      # Here, we fen
+      - name: 🌶️ Generate SLSA Provenance Attestation
+        id: tejolote        
+        run: |
+            # Generate the provenance attestation with the Tejolote attester
+            tejolote attest github://${{github.repository}}/"${GITHUB_RUN_ID}" \
+              --artifacts file:$(pwd)/bin/ \
+              --output .attestations/provenance.json --slsa="1.0" \
+              --vcs-url=cgr.dev/chainguard/go@${{ steps.digests.outputs.builder }}
+
+            # Sign the provenance attestation
+            bnd statement .attestations/provenance.json >> .attestations/attestations.bundle.jsonl
+            echo "" >> .attestations/attestations.bundle.jsonl
 
       - name: Verify All Artifacts and Generate VSAs
         id: artifact-vsas
