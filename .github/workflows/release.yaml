@@ -206,7 +206,7 @@ jobs:
             bnd statement .attestations/provenance.json >> .attestations/attestations.bundle.jsonl
             echo "" >> .attestations/attestations.bundle.jsonl
 
-      - name: Verify All Artifacts and Generate VSAs
+      - name: 🔴🟡🟢 Verify All Artifacts and Generate VSAs
         id: artifact-vsas
         run: |
             echo "$HOME/.carabiner/bin" >> $GITHUB_PATH

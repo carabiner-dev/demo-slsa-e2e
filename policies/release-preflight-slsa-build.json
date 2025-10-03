@@ -12,10 +12,10 @@
     "common": {
         "context": {
             "buildPoint": {
-                "value": "git+ssh://github.com/puerco/demo-slsa-e2e@a9e4d2d2b783fb2ac129378e1a93e7c1ea1891a9"
+                "value": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
             },
             "builderId": {
-                "value": "https://github.com/puerco/demo-slsa-e2e/.github/workflows/release.yaml"
+                "value": "https://github.com/carabiner-dev/demo-slsa-e2e/.github/workflows/release.yaml"
             },
             "buildType": {
                 "value": "https://github.com/Attestations/GitHubActionsWorkflow@v1"
@@ -65,7 +65,7 @@
                 "buildPointRepo": {
                     "required": true,
                     "type": "string",
-                    "default": "git+ssh://github.com/puerco/demo-slsa-e2e"
+                    "default": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
                 },
                 "builderImage": {
                     "required": true,
