@@ -1,9 +1,20 @@
 {
     id: fritoto-artifacts-verify
     meta: {
-        description: '''
-        PolicySet to verify the released artifacts from the Fritoto project
-        '''
+        description:
+'''
+# fritoto-artifacts-verify
+
+PolicySet to verify the released artifacts from the Fritoto project.
+
+## Purpose
+
+This policy set is inteded to be used by users to verify the published
+artifacts of the Fritoto project. This policy set relies on the VSAs
+attesting to the verifications performed on the built binaries during
+the release process instead of checking the full body of evidence.
+
+'''
     },
     common: {
         identities: [
@@ -39,12 +50,12 @@
         },
         {
             source: {
-                location: { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
             }
         },
         {
             source: {
-                location: { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
             }
         }
     ]
