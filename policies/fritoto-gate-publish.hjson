@@ -1,0 +1,200 @@
+{
+    id: fritoto-gate-publish,
+    meta: {
+        description: 
+'''
+# fritoto-gate-publish
+
+Ensures the SLSA level of the built binaries and dependencies before publishing
+the release artifacts.
+
+## Purpose
+
+This PolicySet verifies the SLSA build attestation of each of the binaries and
+the project's dependencies (builder and source) according to the SLSA spec.
+
+This set has five policies. The first verify the build provenance of each binary.
+
+The. next policy chains the build provenance to the build point commit and
+checks its SLSA source attestations to verify it is SLSA Source Level 3. 
+
+Finally, we verify the VSA capturing the SLSA Build verification results from the
+build image policy.
+
+This policy generates the verification summaries (VSAs) that users will be able
+to use to check the binaries.
+
+'''
+        frameworks: [
+            {
+                id: "SLSA",
+                name: "Supply-Chain Levels for Software Artifacts"
+            }
+        ]
+    },
+    common: {
+        context: {
+            // buildPoint captures the build point base. This value can be
+            // pinned to a commit but since it is "baked" in the policy code
+            // we define the VCS locator of the repo without a commit to match
+            // the repo on any revision.
+            buildPoint: {
+                value: "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
+            },
+            // Builder ID is set to the repository workflow URL.
+            builderId: {
+                value: "https://github.com/carabiner-dev/demo-slsa-e2e/.github/workflows/release.yaml"
+            },
+            // The build type specifies we are using github actions. 
+            buildType: {
+                value: "https://github.com/Attestations/GitHubActionsWorkflow@v1"
+            }
+        },
+        identities: [
+            {
+                // The workload identity of this repository.
+                sigstore: {
+                    mode: "regexp",
+                    issuer: "https://token.actions.githubusercontent.com",
+                    identity: "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+"
+                }
+            }
+        ]
+    },
+    // The first three policies verify the provenance atteatstion of the binaries.
+    // We check that they were built by the CI in our repo.
+    policies: [
+        {
+            // Verify the builder was done in our repository
+            id: "slsa-builder-id",
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
+            },
+            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ] }
+        },
+        {
+            // Check it was built on GotHub actions
+            id: "slsa-build-type",
+            source: {
+                location: { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
+            },
+            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ] }
+        },
+        {
+            // This verifies that the binaries were build on the
+            // specific commit.
+            id: "slsa-build-point",
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
+            },
+            meta: {
+                controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ],
+                enforce: ON
+            }
+        },
+        {
+            // Ensure the source code revision history we are building is
+            // protected with SLSA Source 3. This will verify the commit, not
+            // the binary to do it we chain the attestations.
+            id: "slsa-source-level",
+            // This policy verifies a VSA to check for a SLSA Source level 3
+            // verification.
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json" }
+            },
+            context: {
+                // Repository we are building from, this value will be used to
+                // extract the build point from the provenance attestation.
+                buildPointRepo: {
+                    required: true,
+                    type: "string",
+                    default: "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
+                },
+                "builderImage": {
+                    "required": true,
+                    "type": "string",
+                    "default": "cgr.dev/chainguard/go"
+                }
+            },
+            // Here we chain the provenance attestation to the source VSA to
+            // evaluate the policy on the commit hash.
+            chain: [
+                {
+                    predicate: {
+                        type: "https://slsa.dev/provenance/v1",
+
+                        // The selector chains the attestation. It looks in the
+                        // resolvedDependencies dection of the build provenance
+                        // for the buildPointRepo context value defined above.
+                        selector: '''
+                            has(predicates[0].data.buildDefinition) ? (
+                                has(predicates[0].data.buildDefinition.resolvedDependencies) ? (
+                                    predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.buildPointRepo + '@'), dep)[0]
+                                ) : '' 
+                            ) : ''
+                        '''
+                    }
+                }
+            ],
+            identities:[
+                {
+                    // We will verify the source attestations. All the SLSA source
+                    // attestations from projects using the community tools are
+                    // signed by the actions repo workload identity.
+                    sigstore: {
+                        issuer: "https://token.actions.githubusercontent.com",
+                        identity: "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
+                    }
+                }
+            ],
+            meta: {
+                controls: [ { framework: "SLSA", class: "SOURCE", id: "1" } ],
+                enforce: ON
+            }
+        },
+        {
+            // Verify the builder image. 
+            // As we already did the full verification, this step checks the VSA
+            // as it provides the summary of the previous verification results.
+            id: slsa-builder-image,
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
+            },
+            context: {
+                // This is the image location
+                builderImage: {
+                    required: true,
+                    type: string,
+                    default: cgr.dev/chainguard/go
+                }
+            },
+            chain: [
+                {
+                    // Same as above, we chain the build provenance to extract
+                    // the digest of the image. 
+                    predicate: {
+                        type: "https://slsa.dev/provenance/v1",
+                        
+                        // The selector queries the resolvedDependencies to 
+                        // look for the dependecy data.
+                        selector: '''
+                            has(predicates[0].data.buildDefinition) ? (
+                                has(predicates[0].data.buildDefinition.resolvedDependencies) ? (
+                                    predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.builderImage + '@'), dep.uri)[0].substring(context.builderImage.size() + 1)
+                                ) : '' 
+                            ) : ''
+                        '''
+                    }
+                }
+            ],
+            identities:[
+                {
+                    sigstore: {
+                        issuer: "https://token.actions.githubusercontent.com",
+                        identity: "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
+                    }
+                }
+            ]
+        }
+    ]
+}

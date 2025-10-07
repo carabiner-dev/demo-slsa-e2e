@@ -1,0 +1,59 @@
+{
+    "id": "fritoto-verify-builder",
+    "meta": {
+        "description": "Verifies an artifact to check if it was built in Chainguard's SLSA_BUILD_LEVEL_3 build system",
+        "frameworks": [
+            {
+                "id": "SLSA",
+                "name": "Supply-Chain Levels for Software Artifacts"
+            }
+        ]
+    },
+    "common": {
+        "context": {
+            "buildPoint": {
+                "value": "(this is not set in the image attestations)"
+            },
+            "builderId": {
+                "value": "https://github.com/chainguard-dev/terraform-provider-apko"
+            },
+            "buildType": {
+                "value": "https://apko.dev/slsa-build-type@v1"
+            }
+        },
+        "identities": [
+            {
+                "sigstore": {
+                    "issuer": "https://token.actions.githubusercontent.com",
+                    "identity": "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"
+                }
+            }
+        ]
+    },
+    "policies": [
+        {
+            "id": "slsa-builder-id",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
+            },
+            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
+        },
+        {
+            "id": "slsa-build-type",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
+            },
+            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
+        },
+        {
+            "id": "slsa-build-point",
+            "source": {
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
+            },
+            "meta": {
+                "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ],
+                "enforce": "OFF"
+            }
+        }
+    ]
+}
