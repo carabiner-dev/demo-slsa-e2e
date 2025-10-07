@@ -1,5 +1,5 @@
 {
-    "id": "fritoto-gate-publish",
+    "id": "fritoto-gate-build",
     "meta": {
         "description": "Verifies that the build and artifacts meet the required conditions before publishing the built binaries"
     },

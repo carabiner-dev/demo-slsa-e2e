@@ -1,17 +1,18 @@
 {
-    id: fritoto-gate-publish,
+    id: fritoto-gate-build,
     meta: {
         description: 
 '''
-# fritoto-gate-publish
+# fritoto-gate-build
 
 Verifies that the build and artifacts meet the required conditions before
 building the project binaries.
 
 ## Purpose
 
-This PolicySet gates the release publishing process. It verifies the conditions
-that have to be met before starting the build.
+This PolicySet gates the build execution. It verifies the conditions
+that have to be met before compiling the binaries, if any are note met
+AMPEL stops the release workflow.
 
 '''
     },
