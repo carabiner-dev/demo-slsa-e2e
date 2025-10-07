@@ -100,7 +100,7 @@ jobs:
           # The verification subjest: The image digest
           subject: "${{ steps.digests.outputs.builder }}"
           # Use the modified policy set
-          policy: "policies/verify-builder-image-slsa3.set.json"
+          policy: "git+https://github.com/${{ github.repository }}#policies/fritoto-verify-builder.hjson"
           # Collect builder attestations attached to the image
           collector: "coci:cgr.dev/chainguard/go"
           # We don't specify the signer here, it's baked in the policy
@@ -114,7 +114,7 @@ jobs:
         run: |
           echo "$HOME/.carabiner/bin" >> $GITHUB_PATH
           $HOME/.carabiner/bin/ampel verify ${{ steps.digests.outputs.builder }} \
-          --policy policies/verify-builder-image-slsa3.set.json \
+          --policy "git+https://github.com/${{ github.repository }}#policies/fritoto-verify-builder.hjson" \
           -c coci:cgr.dev/chainguard/go --format="vsa" >> .attestations/builder-vsa.intoto.json
           
           bnd statement .attestations/builder-vsa.intoto.json >> .attestations/attestations.bundle.jsonl
@@ -181,7 +181,7 @@ jobs:
         uses: carabiner-dev/actions/ampel/verify@HEAD
         with:
           subject: "sha1:${{ github.sha }}"
-          policy: "git+https://github.com/${{ github.repository }}#policies/release-preflight.json"
+          policy: "git+https://github.com/${{ github.repository }}#policies/fritoto-gate-build.hjson"
           collector: "jsonl:.attestations/attestations.bundle.jsonl"
           attest: false
 
@@ -212,7 +212,7 @@ jobs:
             ls -l bin/
             for binfile in $(ls bin/*); 
             do ampel verify "$binfile" \
-               --policy "git+https://github.com/${{ github.repository }}#policies/release-preflight-slsa-build.json" \
+               --policy "git+https://github.com/${{ github.repository }}#policies/fritoto-gate-publish.hjson" \
                --collector jsonl:.attestations/attestations.bundle.jsonl \
                --attest-results --attest-format=vsa --results-path=vsa.tmp.json \
                --format=html >> $GITHUB_STEP_SUMMARY;
