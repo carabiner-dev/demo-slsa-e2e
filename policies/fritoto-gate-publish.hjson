@@ -1,9 +1,9 @@
 {
-    id: publish-preflight,
+    id: fritoto-gate-publish,
     meta: {
         description: 
 '''
-# publish-preflight
+# fritoto-gate-publish
 
 Verifies that the build and artifacts meet the required conditions before
 building the project binaries.

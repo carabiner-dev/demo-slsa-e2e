@@ -1,11 +1,12 @@
 {
-    id: fritoto-release-preflight,
+    id: fritoto-gate-release,
     meta: {
         description: 
 '''
-# fritoto-release-preflight
+# fritoto-gate-release
 
-Ensures the SLSA level of the built binaries and artifacts before publishing.
+Ensures the SLSA level of the built binaries and dependencies before publishing
+the release artifacts.
 
 ## Purpose
 

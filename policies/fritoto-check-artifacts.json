@@ -1,5 +1,5 @@
 {
-    "id": "fritoto-artifacts-verify",
+    "id": "fritoto-check-artifacts",
     "meta": {
         "description": "PolicySet to verify the released artifacts from the Fritoto project"
     },

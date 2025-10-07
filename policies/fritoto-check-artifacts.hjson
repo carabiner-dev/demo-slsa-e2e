@@ -1,9 +1,9 @@
 {
-    id: fritoto-artifacts-verify
+    id: fritoto-check-artifacts
     meta: {
         description:
 '''
-# fritoto-artifacts-verify
+# fritoto-check-artifacts
 
 PolicySet to verify the released artifacts from the Fritoto project.
 

@@ -1,7 +1,7 @@
 {
-    "id": "publish-preflight",
+    "id": "fritoto-gate-publish",
     "meta": {
-        "description": "Verifies that the buidl and artifacts meet the required conditions before publishing the built binaries"
+        "description": "Verifies that the build and artifacts meet the required conditions before publishing the built binaries"
     },
     "common": {
         "identities": [
