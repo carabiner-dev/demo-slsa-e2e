@@ -164,7 +164,7 @@ to use to check the binaries.
                 // This is the image location
                 builderImage: {
                     required: true,
-                    type: string,
+                    type: "string",
                     default: cgr.dev/chainguard/go
                 }
             },
