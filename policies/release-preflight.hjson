@@ -1,0 +1,63 @@
+{
+    id: publish-preflight,
+    meta: {
+        description: 
+'''
+# publish-preflight
+
+Verifies that the build and artifacts meet the required conditions before
+building the project binaries.
+
+## Purpose
+
+This PolicySet gates the release publishing process. It verifies the conditions
+that have to be met before starting the build.
+
+'''
+    },
+    common: {
+        identities: [
+            {
+                // This is the workload identity of the SLSA Source actions repo
+                // that signs all attestations of projects using it.
+                sigstore: {
+                    issuer: "https://token.actions.githubusercontent.com",
+                    identity: "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
+                }
+            },
+            {
+                // This is the sigstore identity of this repository. All attestations
+                // produced during the workflow run are signed with this identity.
+                // It uses regular expressions to allow the policy to run on forks.
+                sigstore: {
+                    mode: "regexp",
+                    issuer: "https://token.actions.githubusercontent.com",
+                    identity: "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+"
+                }
+            }
+        ]
+    },
+    policies: [
+        {
+            // The test-results/test-pass policy checks a test results attestation
+            // and fails if one of the test is failing.
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#test-results/tests-pass.json" }
+            }
+        },
+        {
+            // The openvex/no-exploitable-vulns-osv community policy reads a OSV
+            // vulnerability scan and suppresses any vulnerabilites marked as 
+            // not_affected in VEX statements.
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json" }
+            }
+        },
+        {
+            // The sbom/sbom-exists policy simply checks for the presence of an SBOM
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#sbom/sbom-exists.json" }
+            }
+        }
+    ]
+}
