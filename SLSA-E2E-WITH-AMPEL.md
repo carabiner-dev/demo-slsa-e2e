@@ -3,30 +3,31 @@
 This post illustrates a SLSA end-to-end implementation using
 [🔴🟡🟢 AMPEL](https://github.com/carabiner-dev/ampel), the Amazing Multipurpose
 Policy Engine (and L) and other tools in the supply chain ecosystem to generate
-and verify attested data leveraging VSA receipts of each verification step.
+and verify attested data protecting each step in a project's build, leveraging
+VSA receipts of each verification.
 
-Most of the policies in this case study leverage AMPEL's community polcies
-repository.
+Most of the policy sets in this case study leverage policies from AMPEL's
+[community repository](https://github.com/carabiner-dev/policies).
 
 ### Requirements
 
 This example runs through the
-[release workflow in the demo repository](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/.github/workflows/release.yaml).
+[release workflow in the SLSA E2E demo repository](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/.github/workflows/release.yaml).
 If you want to try running the verification steps yourself, download
 [the latest AMPEL binary](https://github.com/carabiner-dev/ampel/releases/latest).
 We also recommend downloading [bnd](https://github.com/carabiner-dev/bnd) to
 inspect the generated attestations.
 
-We'll walk through the steps in the workflow. When it runs all the verification
-results are displayed on the run page ([example](https://github.com/carabiner-dev/demo-slsa-e2e/actions/runs/18217437602))
-if you look at the execution output ([example](https://github.com/carabiner-dev/demo-slsa-e2e/actions/runs/18217437602/job/51869676510)),
-you'll notice that steps that involve AMPEL are marked with its traffic
-lights (🔴🟡🟢), those that use `bnd` are marked with its pretzel logo (🥨).
+We'll walk through the steps in the workflow. When the workflow runs, all the verification
+results are displayed on the run page on GitHub ([example](https://github.com/carabiner-dev/demo-slsa-e2e/actions/runs/18217437602)).
+If you look at the execution output ([example](https://github.com/carabiner-dev/demo-slsa-e2e/actions/runs/18217437602/job/51869676510)),
+you'll notice that those steps that involve AMPEL are marked with its traffic
+lights (🔴🟡🟢), those that use `bnd` are marked with its pretzel icon (🥨).
 
 ## Meet the Fritoto Project
 
 This walkthrough will analyze how the Fritoto project releases secure binaries.
-Fritoto (a play on Friday \+ In-toto) is a utility that generates attestations
+Fritoto (a play on Friday + In-toto) is a utility that generates attestations
 that inform if a software piece was built on a Friday. Why? Well… you don’t
 deploy on Fridays, right? Fritoto’s attestations let you write policies to
 prevent shipping software laced with Fridayness.
@@ -34,8 +35,9 @@ prevent shipping software laced with Fridayness.
 (Note that Fritoto is a joke project, but it is fully functional if you want to
 attest those cursed EoW builds).
 
-As a security tool, Fritoto has implemented a secure build process, starting with
-a hardened revision history and extending to the secure execution of its binaries.
+As a security tool, Fritoto has implemented a secure end-to-end build process,
+starting with a hardened revision history and extending all the way to the
+secure execution of its binaries.
 
 Let’s inspect their hardened supply chain security architecture!
 
@@ -48,14 +50,14 @@ the Fritoto team have secured their git repository with
 Track CLI.
 
 The SLSA Source tools allowed the project to onboard its repository in minutes,
-hardening the revision history and setting up tools to continuously check the
+hardening the revision history and setting up tools to continuously check that
 repository security controls are properly set. Once the SLSA Source workflows are
 in place, each commit receives its own SLSA Source attestations, confirming
-that all changes have been merged while the repository controls were in place.
+that all changes have been merged while the security controls were in place.
 
 By checking the SLSA Source attestations, Fritoto makes sure all builds are run
-on a commit that is guaranteed to be preceded by others merged through the proper
-mechanisms.
+on a commit guaranteed to be part of a revision history were all changes were
+properly vetted.
 
 In their release process, before anything goes on, Fritoto leverages AMPEL to
 enforce a policy that verifies the build point’s source attestations:
@@ -65,7 +67,7 @@ enforce a policy that verifies the build point’s source attestations:
   uses: carabiner-dev/actions/ampel/verify@HEAD
   with:
     subject: "sha1:${{ github.sha }}"
-    policy: "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json"
+    policy: "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level3.json"
     collector: "note:https://github.com/${{ github.repository }}@${{ github.sha }}"
     signer: "sigstore::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
     attest: false
@@ -78,25 +80,29 @@ enforce a policy that verifies the build point’s source attestations:
 
 ```
 
-AMPEL pulls the commit’s VSA (Verification Summary Attestation) from the commit
-notes and verifies that the repository had Source Level 3 protections in place,
-ensuring no rogue commits altered the code base. Using bnd, we extract the
-attestations and add them to a jsonl bundle where we'll collect all the build
-process security metadata.
+In this fragment of the
+[release workflow](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/.github/workflows/release.yaml),
+AMPEL pulls the commit’s VSA (Verification Summary Attestation) from the build
+commit notes and verifies that the repository had Source Level 3 protections in place,
+ensuring no rogue commits altered the code base.
+
+Second, using bnd, we extract the attestations and add them to a jsonl (linear JSON)
+bundle where we'll collect all the build process' security metadata.
 
 ## No Trust, No Go
 
 Now that the source is trusted, the Fritoto release process checks its builder.
 It uses [Chainguard’s Go image](https://images.chainguard.dev/directory/image/go/overview)
-to build binaries for various platforms. This image ships with some attestations
-already built in, making it is easy to verify it with AMPEL. We will leverage
-its SLSA Build provenance attestation to make sure the Go compiler comes from
+to build binaries for the supported platforms. This image ships with some
+attestations already built in, making it is easy to verify with AMPEL. We will
+leverage its SLSA Build provenance attestation to make sure the image and the
+Go compiler within come from
 [Chainguard’s SLSA3 build system](https://edu.chainguard.dev/compliance/slsa/slsa-chainguard/).
 
 To verify it, AMPEL pulls the provenance attestations attached to the image using
-its `coci` (Cosign/OCI) collector driver, and runs them through tge the builder
-PolicySet. AMPEL will also generate a VSA capturing the results of the verification.
-We’ll also save it for later.
+its `coci` (Cosign/OCI) collector driver. Then it runs them through the project's
+builder PolicySet. AMPEL will also generate a VSA capturing the results of the
+verification which we’ll also save for later in our jsonl file.
 
 ```yaml
 - name: 🔴🟡🟢 Verify Builder Image  
@@ -105,7 +111,7 @@ We’ll also save it for later.
     # The verification subjest: The image digest  
     subject: "${{ steps.digests.outputs.builder }}"  
     # Use the modified policy set  
-    policy: "policies/verify-builder-image-slsa3.set.json"  
+    policy: "git+https://github.com/${{ github.repository }}#policies/fritoto-verify-builder.hjson"
     # Collect builder attestations attached to the image  
     collector: "coci:cgr.dev/chainguard/go"  
     # We don't specify the signer here as it's baked in the policy code, but
@@ -118,7 +124,7 @@ We’ll also save it for later.
 
 ### The Build Image PolicySet
 
-A PolicySet is a group of policies that AMPEL applies together. Fritoto’s 
+A PolicySet is a group of policies that AMPEL applies together. Fritoto’s
 [build image PolicySet](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/policies/verify-builder-image-slsa3.set.json)
 performs the [verifications suggested in the SLSA spec](https://slsa.dev/spec/v1.0/verifying-artifacts) by reusing three
 policies from AMPEL’s community repository:
@@ -156,10 +162,11 @@ The policies are referenced remotely but if you look at each policy, you’ll se
 that they
 [verify the build type](https://github.com/carabiner-dev/policies/blob/main/slsa/slsa-build-type.json),
 [look for the expected builder ID](https://github.com/carabiner-dev/policies/blob/main/slsa/slsa-builder-id.json), and
-[verify the build point](https://github.com/carabiner-dev/policies/blob/main/slsa/slsa-build-point.json) (although this one is not enforced in the policy set for now, as the data seems to be missing from the image provenance attestation). The policy
-set defines the contextual data required by each policy. Also, you’ll notice that
-the signer identities are verified and
-["baked" into the policyset code](https://github.com/carabiner-dev/demo-slsa-e2e/blob/cb5a32d292d1222e8d55a5d0d0585e2da0efe7a1/policies/verify-builder-image-slsa3.set.json#L24-L32):
+[verify the build point](https://github.com/carabiner-dev/policies/blob/main/slsa/slsa-build-point.json) (although this one is not enforced in the policy set for now,
+as the build point is missing from the image attestation).
+
+The policy set defines the contextual data required by each policy. Also, you’ll
+notice that the signer identities are verified and "baked" into the policyset code:
 
 ```json
   "identities": [
@@ -173,33 +180,41 @@ the signer identities are verified and
 ```
 
 By codifying the signer identities and contextual values in the policy, you can
-make them immutable if you sign the policy.
+make them immutable when you sign the policy.
 
 ## Moaar Data!
 
 As part of their build process, the Fritoto builder creates additional attestations
-to ensure the build is safe to ship and increase the transparency of the released
-assets. All of these additional attestations will describe data about the build
-commit, they will be collected and checked before releasing the binaries. The
-example workflow goes through these steps linearly for clarity’s sake.
+to ensure the build is safe to ship to its users and increase the transparency
+of the released assets. All of these additional attestations will describe data
+about the build commit, they will be collected and checked before releasing the
+binaries.
+
+The following additional attestations are produced before the build:
 
 ### SBOM
 
 First, to keep track of all dependencies, the build process builds an SPDX
 Software Build of Materials. The release workflow uses Carabiner's
-[unpack](https://github.com/carabiner-dev/unpack) as it generates an attested
-SBOM natively but you can use any SBOM generator such as Syft or Trivy and tie
-the SBOM to the commit in an attestation with `bnd predicate`.
+[unpack](https://github.com/carabiner-dev/unpack) utility as it generates an
+attested SBOM natively but you can use any SBOM generator such as Syft or Trivy
+and then tie the SBOM to the commit in an attestation with `bnd predicate`.
 
 ### Checking for Vulnerabilities (and dealing with them)
 
 Next, the build process generates an attestation of an OSV vulnerability scan.
-It is wrapped and signed. But alas! OSV scanner found that the project is
-susceptible to CVE-2020-8911 and CVE-2020-8912 (BTW, we've 
-[injected these vulns](https://github.com/carabiner-dev/demo-slsa-e2e/blob/cb5a32d292d1222e8d55a5d0d0585e2da0efe7a1/go.mod#L5-L6)
-on purpose for this demo 😇). Further down, AMPEL will gate on any vulnerabilities
-before shipping the binaries, so we need to address them or the policy will fail.
-How? Well, we VEX!
+It is wrapped and signed as an attestation.
+
+But alas! OSV scanner found that the project is susceptible to CVE-2020-8911 and
+CVE-2020-8912 (BTW, we've [injected these vulns](https://github.com/carabiner-dev/demo-slsa-e2e/blob/cb5a32d292d1222e8d55a5d0d0585e2da0efe7a1/go.mod#L5-L6)
+on purpose for this demo 😇). Later in the release process, AMPEL will gate on
+any detected vulnerabilities before shipping the binaries, so we need to address
+them or the policy will fail. How? Well, we __VEX__!
+
+VEX, the
+[Vulnerability Exploitability Exchange](https://www.cisa.gov/resources-tools/resources/minimum-requirements-vulnerability-exploitability-exchange-vex) lets software
+authors and other stakeholders communicate if a software piece is affected by a
+vulnerability.
 
 As these CVEs are [known not to be exploitable in Fritoto](https://github.com/carabiner-dev/demo-slsa-e2e/blob/cb5a32d292d1222e8d55a5d0d0585e2da0efe7a1/main.go#L16-L21),
 the release engineers issue two OpenVEX attestations assessing the project as
@@ -214,40 +229,47 @@ Next up, Fritoto leverages [beaker](https://github.com/carabiner-dev/beaker),
 an experimental tool from Carabiner Systems that runs your project’s tests and
 generates a standard
 [test-results](https://github.com/in-toto/attestation/blob/main/spec/predicates/test-result.md)
-attestation from the tests run. Again, this statement will describe the test run
-at the specific build point, that is, it will have the commit’s sha as its subject.
+attestation from the tests run. Since it is just a standard statement, the same
+policy works with a tests-result attestation from any other tool.
+
+Again, this statement will describe the test run at the specific build point,
+that is, it will have the commit’s sha as its subject.
 
 ## Build that Castle!
 
-It is time to run the build. But before doing so, we need to verify that all the
-attested data checks out. AMPEL will gate the build by
-[applying a preflight PolicySet](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/policies/release-preflight.json)
+It is time to run the build. But before doing so, we need to verify that the
+conditions snapshotted in all the attested data check out with out expectations.
+AMPEL will gate the build by
+[applying a preflight PolicySet](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/policies/fritoto-gate-build.hjson)
 to all the collected attestations, stopping the workflow if anything goes wrong.
 
 ```yaml
-  # Gate the build enforcing the preflight policy  
-  - name: 🔴🟡🟢 Run Release Pre-flight Verification  
-    uses: carabiner-dev/actions/ampel/verify@HEAD  
+  # Gate the build enforcing the preflight policy
+  - name: 🔴🟡🟢 Run Release Pre-flight Verification
+    uses: carabiner-dev/actions/ampel/verify@HEAD
     with:  
       subject: "sha1:${{ github.sha }}"  
-      policy: "git+https://github.com/${{ github.repository }}#policies/release-preflight.json"  
-      collector: "jsonl:.attestations/attestations.bundle.jsonl"  
-      attest: false  
+      policy: "git+https://github.com/${{ github.repository }}#policies/fritoto-gate-build.hjson"
+      collector: "jsonl:.attestations/attestations.bundle.jsonl"
+      attest: false
 ```
 
-In this case, AMPEL collects the attestations using its jsonl collector on the
+In this case, AMPEL collects the attestations with its jsonl collector from the
 file that the release process has been assembling on each step. You'll notice
-that the policy is referenced remotely; this ensures that the policy code cannot
-be changed during the build process. Note that while policies can be signed, we
-are using them unsigned here to see their code more easily.
+that the policy set is referenced remotely; this ensures that the policy code
+cannot be changed during the build process. Note that while AMPEL policies and
+policy sets can be signed, we are using them unsigned in the demo to see their
+code more easily.
 
 We won't go into the policy details, but you can check the policy set code and
-see that it reuses three community polices that: check that:
-1\) [The SBOM was generated](https://github.com/carabiner-dev/policies/blob/main/sbom/sbom-exists.json),
-2\) [All unit tests passed](https://github.com/carabiner-dev/policies/blob/main/test-results/tests-pass.json),
-and 3\) [There are no vulnerabilities present](https://github.com/carabiner-dev/policies/blob/main/openvex/no-exploitable-vulns-osv.json).
+see that it reuses three community polices that:
 
-As we mentioned before, the scan returned two CVEs, but thanks to the OpenVEX
+1) [Check the SBOM was generated](https://github.com/carabiner-dev/policies/blob/main/sbom/sbom-exists.json),
+2) [Verify that all unit tests passed](https://github.com/carabiner-dev/policies/blob/main/test-results/tests-pass.json),
+and
+3) [Ensure no exploitable vulnerabilities are present](https://github.com/carabiner-dev/policies/blob/main/openvex/no-exploitable-vulns-osv.json).
+
+As we mentioned before, the OSV scan returned two CVEs, but thanks to the OpenVEX
 attestations, the release is allowed to run because the
 [non-exploitable vulnerabilities policy](https://github.com/carabiner-dev/policies/blob/main/openvex/no-exploitable-vulns-osv.json)
 leverages the
@@ -284,20 +306,24 @@ the artifacts, their build environment, and their configuration:
 ```
 
 This step adds the provenance attestation to the same jsonl bundle with the
-rest of the attestations.
+rest of the attestations which we will publish along with the artifacts.
 
-Note that for demonstration purposes, the build process is running Tejolote in the same job, which is not ideal. Tejolote is designed to run outside of the workflow; it observes the build system running and attests when the build is done. But for the demo, it will do for now.
+Note that for demonstration purposes, the build process is running Tejolote in
+the same job, which is not ideal (or SLSA 3 compliant). Tejolote is designed to
+run outside of the workflow; it observes the build system running and attests
+when the build is done. But for the demo, it will do for now.
 
 ## Final Check Before Release
 
-Finally, Fritoto performs a SLSA Build and Source verification on the built binaries
-to ensure everything ties together. To spare downstream consumers from doing the
-same heavy checks, the project will issue separate VSAs, one for each binary, which
-can be later used to check that every verification up to this point actually took
-place and the results were as expected.
+Finally, Fritoto performs a SLSA Build and Source verification on the built
+binaries to ensure everything securely ties together. To spare downstream
+consumers from doing the same heavy checks, the project will issue separate
+VSAs, one for each binary, which can be later used to check that every
+verification up to this point actually took place and the results were as expected.
 
-Here, the workflow runs the ampel binary for each binary and collects the
-resulting VSAs:
+Here, the workflow runs `ampel verify` on each binary, applying the
+[`fritoto-gate-publish.hjson`](https://github.com/carabiner-dev/demo-slsa-e2e/policies/fritoto-gate-publish.hjson),
+and attests the results in individual VSAs:
 
 ```yaml
   - name: 🔴🟡🟢 Verify All Artifacts and Generate VSAs  
@@ -307,7 +333,7 @@ resulting VSAs:
             ls \-l bin/  
             for binfile in $(ls bin/\*);   
               do ampel verify "$binfile" \
-                --policy "git+https://github.com/${{ github.repository }}#policies/release-preflight-slsa-build.json" \
+                --policy "git+https://github.com/${{ github.repository }}#policies/fritoto-gate-publish.hjson" \
                 --collector jsonl:.attestations/attestations.bundle.jsonl \
                 --attest-results --attest-format=vsa --results-path=vsa.tmp.json \
                 --format=html >> $GITHUB_STEP_SUMMARY;
@@ -320,48 +346,58 @@ resulting VSAs:
 
 ### The Pre-Release PolicySet
 
-The pre-release policy set does the following checks:
+The `fritoto-gate-publish` policy set performs the following checks:
 
-1) The SLSA Build verification of the binaries themselves as recommended on the spec.
+1) All the SLSA Build verifications of the binaries themselves as recommended on the spec.
 2) Verifies the dependency VSAs produced from the previous verifications, namely:
-   1) That the build image is `SLSA_BUILD_LEVEL3`
-   2) That the git commit used as build point is `SLSA_SOURCE_1`
+   - That the build image is `SLSA_BUILD_LEVEL3`
+   - That the git commit used as build point is `SLSA_SOURCE_3`
 
-The advantage of verifying the VSAs is that we don’t have to do all the checks
-again.
+By verifying the VSAs, we don’t have to do all the checks for the image and
+source again!
 
-What makes this step special is that we will mix attestations that describe
+### A Multitude of Subjects
+
+Verifying this step is special as we will mix attestations that describe
 different components of the build process: the built binaries (from the build
 provenance), the git commit (the source VSAs), and the builder image (from the
-VSAs generated by AMPEL when it verified it). Now, the new VSAs we are about to
-produce will have each platform binary as their subject, so how do we check
-them all from a single policy set? The answer: Form a chain.
+VSAs generated by AMPEL when it verified the container). Now, the new VSAs we
+are about to produce will have each fritoto binary as their subject... how do
+we check all those subjectes from a single policy set? The answer: Chain them!
 
-### Chaining Subjects
+#### Chaining Subjects
 
-To support this scenario, AMPEL supports the notion of chained subjects. The
-chain connects an initial subject (the Fritoto binary) to another in its SDLC
-such as the build image or the source commit. To connect them in the policy, the
-Fritoto team wrote selectors that act as carabiners clipping the binary to both
-the image and its build commit by extracting data from the build provenance.
-Here is an example, shortened for illustration:
+To support this scenario, AMPEL supports the notion of _chained subjects_. The
+chain connects an initial subject (the Fritoto binary) to another resource,
+such as the build image or the source commit.
+
+To connect the binary in the policy to the image and its build point commit, the
+Fritoto team wrote _selectors_ that act as carabiners clipping the binary to both
+by extracting data from the build provenance attestation. Here is an example,
+shortened for illustration (this is the HJSON variant with comments):
 
 ```json
- "chain": [  
-    {  
-        "predicate": {  
-            "type": "https://slsa.dev/provenance/v1",  
-            "selector": "predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.buildPointRepo + '@'), dep)[0]"  
-        }  
-    }  
+  chain: [
+    {
+        predicate: {
+            type: "https://slsa.dev/provenance/v1",
+            // The selector chains the attestation. It looks in the
+            // resolvedDependencies dection of the build provenance
+            // for the buildPointRepo context value defined above.
+            selector: '''
+                predicates[0].data.buildDefinition.resolvedDependencies.map(
+                  dep, dep.uri.startsWith(context.buildPointRepo + '@'), dep
+                )[0]
+            '''
+        }
+    }
 ],
-
 ```  
 
 This selector code extracts the URI from the `resolvedDependencies` field in the
-build provenance when it matches the repository name. AMPEL then synthesizes from it
-a new in-toto subject and re-fetches the new subject's attestations, evaluating
-the policy on the commit, instead of the binary.
+build provenance when it matches the repository name. AMPEL then synthesizes a
+new in-toto subject from the extracted data and re-fetches the new subject's
+attestations, evaluating the policy on the commit instead of the binary.
 
 ### Attesting the Verification
 
@@ -374,7 +410,7 @@ everything we’ve seen so far. Here is an example:
   "predicate": {  
     "dependencyLevels": {  
       "SLSA_BUILD_LEVEL_3": "1",  
-      "SLSA_SOURCE_1": "1"  
+      "SLSA_SOURCE_3": "1"  
     },  
     "inputAttestations": [
       {  
@@ -417,7 +453,7 @@ everything we’ve seen so far. Here is an example:
     "timeVerified": "2025-10-03T05:25:08.324338730Z",  
     "verificationResult": "PASSED",  
     "verifiedLevels": [
-      "SLSA_BUILD_LEVEL_3"
+      "SLSA_BUILD_LEVEL_2"
     ],
     "verifier": {  
       "id": "https://carabiner.dev/ampel@v1"  
@@ -437,41 +473,41 @@ everything we’ve seen so far. Here is an example:
 }  
 ```
 
-Notice in the VSA how the subject is the binary and how its `SLSA_BUILD_3` level
-is recorded but also the verified levels of its dependencies. The important parts
-in this document are:
+Notice in the VSA the subject is the linux/amd64 binary and how its `SLSA_BUILD_2`
+level is recorded, but also the verified levels of its dependencies. The
+important parts in this document are:
 
-- The verifier ([https://carabiner.dev/ampel@v1](https://carabiner.dev/ampel@v1)) that tells you what tool performed the verification  
-- The subject (the fritoto-linux-amd64 binary)  
-- The verification result (`PASSED`)  
-- The verified levels of the binary (`SLSA_BUILD_LEVEL_3`)  
-- The verified SLSA levels of the dependencies (`dependencyLevels`):  
+- The verifier ([https://carabiner.dev/ampel@v1](https://carabiner.dev/ampel@v1)) that tells you what tool performed the verification
+- The subject (the fritoto-linux-amd64 binary)
+- The verification result (`PASSED`)
+- The verified levels of the binary (`SLSA_BUILD_LEVEL_2`)
+- The verified SLSA levels of the dependencies (`dependencyLevels`):
   - One `SLSA_BUILD_LEVEL_3` (the go container image)
   - One `SLSA_SOURCE_1` (the build point commit, protected with the SLSA source tools)
 
-This VSA can be used to communicate to users the verifications performed on the
-binaries, to act as guarantees that the released assets were built in a secure
-environment.
+This VSA can be used to communicate to users all the verifications performed on
+the binaries, they can act as guarantees that the released assets were built in
+a secure environment.
 
 ## End User Verification
 
 Now that the Fritoto project has produced VSAs for all its binaries, the project
 users should be able to use them! Especially since Fritoto is a “security”
-(wink wink) tool that runs in CI. So how do they verify the executables?
+(wink wink) tool that runs in CI. So how can a user verify the executables?
 
-To verify the binaries, users only need the
+To verify the Fritoto binaries, users only need the
 [latest release of AMPEL](https://github.com/carabiner-dev/ampel/releases/latest)
 installed. AMPEL can check the binary directly or verify its hash (as published
 on the project's
 [release page](https://github.com/carabiner-dev/demo-slsa-e2e/releases/latest)).
 The Fritoto team has published a
-[policy to verify the project'’'s binaries](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/policies/check-artifacts.json).
+[policy to verify the project's binaries](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/policies/check-artifacts.json).
 You don’t need to download the policy or the attestations; AMPEL can fetch them
-for you when it needs them.
+for you when it needs them using the releases collector driver:
 
 ```bash
 ampel verify sha256:b2f66926949aef30bede58144b797b763fed2d00c75a58a246814a5e65acec55 \
-      --policy "git+https://github.com/carabiner-dev/demo-slsa-e2e\#policies/check-artifacts.json" \
+      --policy "git+https://github.com/carabiner-dev/demo-slsa-e2e#policies/fritoto-check-artifacts.json" \
       --collector release:carabiner-dev/demo-slsa-e2e@v0.1.1  
 ```
 
@@ -488,7 +524,7 @@ respective verification results:
 +-------------------------+--------------------------+--------+------------------------------------------------------+  
 | Policy                  | Controls                 | Status | Details                                              |  
 +-------------------------+--------------------------+--------+------------------------------------------------------+  
-| slsa-build-level-3      | BUILD-LEVEL_3            | ● PASS | VSA attesting a SLSA_BUILD_3 compliance verification |  
+| slsa-build-level-2      | BUILD-LEVEL_2            | ● PASS | VSA attesting a SLSA_BUILD_2 compliance verification |  
 | slsa-build-deps-level-3 | BUILD-LEVEL_3            | ● PASS | All verified dependencies are SLSA_BUILD_LEVEL_3+    |  
 | vsa-verify-verifier     | -                        | ● PASS | Attestation was issued by trusted verifier           |  
 +-------------------------+--------------------------+--------+------------------------------------------------------+  
@@ -501,17 +537,35 @@ statements, if you want to see what is in there, you can use
 [bnd, the attestations multitool](https://github.com/carabiner-dev/bnd):
 
 ```bash  
-bnd inspect attestations.bundle.jsonl  
+bnd read release:carabiner-dev/demo-slsa-e2e@v0.1.1
 ```
 
-This command displays details of the included attestations: who signed them, their
-subjects, and their type. Using bnd you can extract the attestations or view the
-predicates.
+```
+🔎  Query Results:
+-----------------
 
-Exploring the data should give you an idea of the kinds of policies that can be
-written, and since all the tools used here are open source, you can use them in
-your projects too! If you write something cool, consider contributing it to
-AMPEL’s community policies for others to reuse.
+Attestation #0
+✉️  Envelope Media Type: application/vnd.dev.sigstore.bundle.v0.3+json
+🔏 Signer identity: sigstore::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main
+📃 Attestation Details:
+   Predicate Type: https://github.com/slsa-framework/slsa-source-poc/source-provenance/v1-draft
+   Attestation Subjects:
+   - gitCommit: cb5a32d292d1222e8d55a5d0d0585e2da0efe7a1
+
+
+Attestation #1
+...
+```
+
+This command displays details of the release attestations: who signed them, their
+subjects, and their type. Using bnd you can extract the attestations or view the
+predicates or unpack them to single files.
+
+Exploring the secure data should give you an idea of the kinds of policies that
+can be written, and since all the tools used here are open source, you can use
+them in your projects too! If you write something cool, consider contributing it to
+[AMPEL’s community policies](https://github.com/carabiner-dev/policies)
+for others to reuse!
 
 ## Conclusion
 
@@ -521,18 +575,20 @@ model:
 1. We checked the source code attestations  
 2. We checked the builder attestations  
 3. We performed checks on our project and attested the results.  
-4. We checked the results of 1-3 before triggering the build  
+4. We checked the results of 1-3 before triggering the build and produced a VSA of the verification.
 5. We verified the resulting binaries before releasing them and produced VSAs to capture the verification results.  
 6. We published all the signed security metadata in a bundle along with the binaries.
-7. Finally, end users can check the binaries using the verification summaries. If they wish, they can also perform the complete verification themselves, as all the data and policies are open
+7. Finally, showed how end users can check the binaries using the verification summaries. If they wish, they can also perform the complete verification themselves, as all the data and policies are open and available.
 
-The example project repository is open source, feel free to suggest improvements
-or fix any bugs, just not the CVEs ;)
+The 
+[example project repository](https://github.com/carabiner-dev/demo-slsa-e2e)
+is open source, feel free to suggest improvements or fix any bugs, 
+just not the CVEs,please ;)
 
 ## Resources
 
 This is a list of the tools used in the demo, most of them have GitHub actions
-ready to use, check the
+you can use, check the
 [Fritoto release workflow](https://github.com/carabiner-dev/demo-slsa-e2e/blob/main/.github/workflows/release.yaml)
 for examples.
 
