@@ -1,9 +1,9 @@
 {
-    id: fritoto-gate-release,
+    id: fritoto-gate-publish,
     meta: {
         description: 
 '''
-# fritoto-gate-release
+# fritoto-gate-publish
 
 Ensures the SLSA level of the built binaries and dependencies before publishing
 the release artifacts.
@@ -21,8 +21,8 @@ checks its SLSA source attestations to verify it is SLSA Source Level 3.
 Finally, we verify the VSA capturing the SLSA Build verification results from the
 build image policy.
 
-This policy generates the VSAs that user will be able to use to check the
-binaries.
+This policy generates the verification summaries (VSAs) that users will be able
+to use to check the binaries.
 
 '''
         frameworks: [

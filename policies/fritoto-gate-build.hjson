@@ -11,7 +11,7 @@ building the project binaries.
 ## Purpose
 
 This PolicySet gates the build execution. It verifies the conditions
-that have to be met before compiling the binaries, if any are note met
+that have to be met before compiling the binaries. If any fail to verify
 AMPEL stops the release workflow.
 
 '''
