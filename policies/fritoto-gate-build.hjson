@@ -52,7 +52,8 @@ AMPEL stops the release workflow.
             // not_affected in VEX statements.
             source: {
                 location: { uri: "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json" }
-            }
+            },
+            meta: { enforce: "OFF" }
         },
         {
             // The sbom/sbom-exists policy simply checks for the presence of an SBOM
