@@ -18,7 +18,7 @@ formatters:
     - gci
     - gofmt
     - gofumpt
-    - goimports
+    # - goimports
     # - golines
   settings: 
     gci:
