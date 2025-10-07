@@ -1,0 +1,51 @@
+{
+    id: fritoto-artifacts-verify
+    meta: {
+        description: '''
+        PolicySet to verify the released artifacts from the Fritoto project
+        '''
+    },
+    common: {
+        identities: [
+            # SLSA Source actions workload identity that signs all source
+            # attestations for all repos.
+            {
+                sigstore: {
+                    issuer: https://token.actions.githubusercontent.com
+                    identity: "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
+                }
+            },
+            # Signer identity of this repository. It uses wildcards to enable
+            # this policy to allow the demo to also work on forks.
+            {
+                sigstore: {
+                    mode: "regexp"
+                    issuer: "https://token.actions.githubusercontent.com",
+                    identity: "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+"
+                }
+            }
+        ]
+    },
+    # The set contains three policies
+    policies: [
+        {
+            context: {
+                // Ensure the VSAs were generated from an AMPEL verification
+                verifier: { value: "https://carabiner.dev/ampel@v1" }
+            },
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/vsa-verify-verifier.json" }
+            }
+        },
+        {
+            source: {
+                location: { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
+            }
+        },
+        {
+            source: {
+                location: { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
+            }
+        }
+    ]
+}
