@@ -1,7 +1,7 @@
 {
-    "id": "publish-preflight",
+    "id": "fritoto-check-artifacts",
     "meta": {
-        "description": "Verifies that the buidl and artifacts meet the required conditions before publishing the built binaries"
+        "description": "PolicySet to verify the released artifacts from the Fritoto project"
     },
     "common": {
         "identities": [
@@ -22,18 +22,21 @@
     },
     "policies": [
         {
+            "context": {
+                "verifier": { "value": "https://carabiner.dev/ampel@v1" }
+            },
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#test-results/tests-pass.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/vsa-verify-verifier.json" }
             }
         },
         {
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
             }
         },
         {
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#sbom/sbom-exists.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
             }
         }
     ]

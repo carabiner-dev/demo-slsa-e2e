@@ -1,9 +1,9 @@
 {
-    id: "slsa-build-3",
+    id: "fritoto-verify-builder",
     meta: {
         description:
 '''
-# slsa-build-3
+# fritoto-verify-builder
 
 Verifies an artifact to check if it was built in Chainguard's SLSA_BUILD_LEVEL_3
 build system.

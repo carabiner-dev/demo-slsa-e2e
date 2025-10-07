@@ -1,7 +1,7 @@
 {
-    "id": "slsa-build-3",
+    "id": "fritoto-gate-publish",
     "meta": {
-        "description": "Verifies an artifact to check if it was built in Chainguard's SLSA_BUILD_LEVEL_3 build system",
+        "description": "Ensures the SLSA level of the built binaries and dependencies before publishing the release artifacts.",
         "frameworks": [
             {
                 "id": "SLSA",

@@ -1,7 +1,7 @@
 {
-    "id": "fritoto-artifacts-verify",
+    "id": "fritoto-gate-build",
     "meta": {
-        "description": "PolicySet to verify the released artifacts from the Fritoto project"
+        "description": "Verifies that the build and artifacts meet the required conditions before publishing the built binaries"
     },
     "common": {
         "identities": [
@@ -22,21 +22,18 @@
     },
     "policies": [
         {
-            "context": {
-                "verifier": { "value": "https://carabiner.dev/ampel@v1" }
-            },
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/vsa-verify-verifier.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#test-results/tests-pass.json" }
             }
         },
         {
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json" }
             }
         },
         {
             "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
+                "location": { "uri": "git+https://github.com/carabiner-dev/policies#sbom/sbom-exists.json" }
             }
         }
     ]
