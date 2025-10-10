@@ -215,6 +215,7 @@ jobs:
                --policy "git+https://github.com/${{ github.repository }}#policies/fritoto-gate-publish.hjson" \
                --collector jsonl:.attestations/attestations.bundle.jsonl \
                --attest-results --attest-format=vsa --results-path=vsa.tmp.json \
+               --context "vsa.resourceUri:https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag_name }}/${binfile#"bin/"}" \
                --format=html >> $GITHUB_STEP_SUMMARY;
 
                bnd statement vsa.tmp.json >> .attestations/attestations.bundle.jsonl;
