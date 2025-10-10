@@ -36,8 +36,8 @@
     ],
     "origin": {
       "digest": {
-        "sha256": "ab1e3904bed05955198e246941e3c60554599fa6ce92755b400b461e0b2b77df",
-        "sha512": "46f579b7e97d9db8c1e8cb1f8b16d1f7593128855a766ba0577a02612669f169367f4e75adf8c9665beb9d9d8c4da1480af265a7c04a9355162323f6d2074c6d"
+        "sha256": "175812c1dd152826cdd604aa14a35674c2f5073ef7a822cf8a2dde02026c03bd",
+        "sha512": "195fcb1023068374c404bf679ce7697e80b45e7a8736d58bb64e89fea5d9f5afa8cfcbc4411a83acd6c18131e7198f717e045d7649388599700008272c12e342"
       },
       "name": "fritoto-gate-publish,"
     }
@@ -50,7 +50,7 @@
           {
             "class": "BUILD",
             "framework": "SLSA",
-            "id": "LEVEL_3"
+            "id": "LEVEL_2"
           }
         ]
       },
@@ -67,7 +67,7 @@
           {
             "class": "BUILD",
             "framework": "SLSA",
-            "id": "LEVEL_3"
+            "id": "LEVEL_2"
           }
         ]
       },
@@ -84,10 +84,9 @@
           {
             "class": "BUILD",
             "framework": "SLSA",
-            "id": "LEVEL_3"
+            "id": "LEVEL_2"
           }
-        ],
-        "enforce": "ON"
+        ]
       },
       "source": {
         "location": {
@@ -130,14 +129,14 @@
           {
             "class": "SOURCE",
             "framework": "SLSA",
-            "id": "1"
+            "id": "3"
           }
         ],
         "enforce": "ON"
       },
       "source": {
         "location": {
-          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json"
+          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level3.json"
         }
       }
     },

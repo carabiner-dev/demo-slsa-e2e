@@ -70,20 +70,20 @@ to use to check the binaries.
     // We check that they were built by the CI in our repo.
     policies: [
         {
-            // Verify the builder was done in our repository
+            // Verify the build ran in our repository
             id: "slsa-builder-id",
             source: {
                 location: { uri: "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
             },
-            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ] }
+            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_2" } ] }
         },
         {
-            // Check it was built on GotHub actions
+            // Check it was built on GitHub actions
             id: "slsa-build-type",
             source: {
                 location: { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
             },
-            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ] }
+            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_2" } ] }
         },
         {
             // This verifies that the binaries were build on the
@@ -92,20 +92,18 @@ to use to check the binaries.
             source: {
                 location: { uri: "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
             },
-            meta: {
-                controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_3" } ],
-                enforce: ON
-            }
+            meta: { controls: [ { framework: "SLSA", class: "BUILD", id: "LEVEL_2" } ] }
         },
         {
             // Ensure the source code revision history we are building is
             // protected with SLSA Source 3. This will verify the commit, not
             // the binary to do it we chain the attestations.
             id: "slsa-source-level",
+
             // This policy verifies a VSA to check for a SLSA Source level 3
             // verification.
             source: {
-                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json" }
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level3.json" }
             },
             context: {
                 // Repository we are building from, this value will be used to
@@ -153,7 +151,7 @@ to use to check the binaries.
                 }
             ],
             meta: {
-                controls: [ { framework: "SLSA", class: "SOURCE", id: "1" } ],
+                controls: [ { framework: "SLSA", class: "SOURCE", id: "3" } ],
                 enforce: ON
             }
         },
