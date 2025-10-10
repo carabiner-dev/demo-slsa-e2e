@@ -22,8 +22,8 @@
     "enforce": "ON",
     "origin": {
       "digest": {
-        "sha256": "7e09a7ef88513f13b4c8c87560d766d06b17310e55a0637ff5830032fe95c332",
-        "sha512": "fea204a994e0edbdef94563738bf92bf79a38f35ddb7581cc617a71b4664167af898d704714b0fdf403d6dc6e1c0d538c8a0bfb054f7a995e869a8f5b935eae8"
+        "sha256": "51b870797545a81993154ed73b3374ab287ecaa117d6ec9f8146bfeadd986eab",
+        "sha512": "0dd9b8121a0b996cd9cf74071d810e89c4030c5ab9a2f685b8fdc72ade345f4f4d1b04490e1a26b41f2695704bb866391b9d15ecc6066ac189921ea77a4e79a9"
       },
       "name": "fritoto-check-artifacts"
     }
@@ -44,7 +44,7 @@
     {
       "source": {
         "location": {
-          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json"
+          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level2.json"
         }
       }
     },

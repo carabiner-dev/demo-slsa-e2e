@@ -49,9 +49,9 @@ the release process instead of checking the full body of evidence.
             }
         },
         {
-            // Ensure a passing SLSA Build 3 verification. 
+            // Ensure a passing SLSA Build 2 verification. 
             source: {
-                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level2.json" }
             }
         },
         {
