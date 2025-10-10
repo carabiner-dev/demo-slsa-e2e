@@ -48,6 +48,11 @@ to use to check the binaries.
             // The build type specifies we are using github actions. 
             buildType: {
                 value: "https://github.com/Attestations/GitHubActionsWorkflow@v1"
+            },
+            // The policy can expose a value to capture it in the VSA ResourceURI
+            // field when exporting the verification results as a VSA.
+            "vsa.resourceUri": {
+                type: string
             }
         },
         identities: [

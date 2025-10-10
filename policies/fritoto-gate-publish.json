@@ -1,127 +1,176 @@
 {
-    "id": "fritoto-gate-publish",
-    "meta": {
-        "description": "Ensures the SLSA level of the built binaries and dependencies before publishing the release artifacts.",
-        "frameworks": [
-            {
-                "id": "SLSA",
-                "name": "Supply-Chain Levels for Software Artifacts"
-            }
-        ]
+  "common": {
+    "context": {
+      "buildPoint": {
+        "value": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
+      },
+      "buildType": {
+        "value": "https://github.com/Attestations/GitHubActionsWorkflow@v1"
+      },
+      "builderId": {
+        "value": "https://github.com/carabiner-dev/demo-slsa-e2e/.github/workflows/release.yaml"
+      },
+      "vsa.resourceUri": {
+        "type": "string"
+      }
     },
-    "common": {
-        "context": {
-            "buildPoint": {
-                "value": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
-            },
-            "builderId": {
-                "value": "https://github.com/carabiner-dev/demo-slsa-e2e/.github/workflows/release.yaml"
-            },
-            "buildType": {
-                "value": "https://github.com/Attestations/GitHubActionsWorkflow@v1"
-            }
-        },
-        "identities": [
-            {
-                "sigstore": {
-                    "mode": "regexp",
-                    "issuer": "https://token.actions.githubusercontent.com",
-                    "identity": "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+"
-                }
-            }
-        ]
-    },
-    "policies": [
-        {
-            "id": "slsa-builder-id",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
-            },
-            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
-        },
-        {
-            "id": "slsa-build-type",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
-            },
-            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
-        },
-        {
-            "id": "slsa-build-point",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
-            },
-            "meta": {
-                "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ],
-                "enforce": "OFF"
-            }
-        },
-        {
-            "id": "slsa-source-level",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json" }
-            },
-            "context": {
-                "buildPointRepo": {
-                    "required": true,
-                    "type": "string",
-                    "default": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e"
-                },
-                "builderImage": {
-                    "required": true,
-                    "type": "string",
-                    "default": "cgr.dev/chainguard/go"
-                }
-            },
-            "chain": [
-                {
-                    "predicate": {
-                        "type": "https://slsa.dev/provenance/v1",
-                        "selector": "has(predicates[0].data.buildDefinition) ? (has(predicates[0].data.buildDefinition.resolvedDependencies) ? (predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.buildPointRepo + '@'), dep)[0]) : '' ) : ''"
-                    }
-                }
-            ],
-            "identities":[
-                {
-                    "sigstore": {
-                        "issuer": "https://token.actions.githubusercontent.com",
-                        "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
-                    }
-                }
-            ],
-            "meta": {
-                "controls": [ { "framework": "SLSA", "class": "SOURCE", "id": "1" } ],
-                "enforce": "ON"
-            }
-        },
-        {
-            "id": "slsa-builder-image",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json" }
-            },
-            "context": {
-                "builderImage": {
-                    "required": true,
-                    "type": "string",
-                    "default": "cgr.dev/chainguard/go"
-                }
-            },
-            "chain": [
-                {
-                    "predicate": {
-                        "type": "https://slsa.dev/provenance/v1",
-                        "selector": "has(predicates[0].data.buildDefinition) ? (has(predicates[0].data.buildDefinition.resolvedDependencies) ? (predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.builderImage + '@'), dep.uri)[0].substring(context.builderImage.size() + 1)) : '' ) : ''"
-                    }
-                }
-            ],
-            "identities":[
-                {
-                    "sigstore": {
-                        "issuer": "https://token.actions.githubusercontent.com",
-                        "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
-                    }
-                }
-            ]
+    "identities": [
+      {
+        "sigstore": {
+          "identity": "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+",
+          "issuer": "https://token.actions.githubusercontent.com",
+          "mode": "regexp"
         }
+      }
     ]
+  },
+  "id": "fritoto-gate-publish,",
+  "meta": {
+    "description": "# fritoto-gate-publish\n\nEnsures the SLSA level of the built binaries and dependencies before publishing\nthe release artifacts.\n\n## Purpose\n\nThis PolicySet verifies the SLSA build attestation of each of the binaries and\nthe project's dependencies (builder and source) according to the SLSA spec.\n\nThis set has five policies. The first verify the build provenance of each binary.\n\nThe. next policy chains the build provenance to the build point commit and\nchecks its SLSA source attestations to verify it is SLSA Source Level 3. \n\nFinally, we verify the VSA capturing the SLSA Build verification results from the\nbuild image policy.\n\nThis policy generates the verification summaries (VSAs) that users will be able\nto use to check the binaries.\n",
+    "enforce": "ON",
+    "frameworks": [
+      {
+        "id": "SLSA",
+        "name": "Supply-Chain Levels for Software Artifacts"
+      }
+    ],
+    "origin": {
+      "digest": {
+        "sha256": "ab1e3904bed05955198e246941e3c60554599fa6ce92755b400b461e0b2b77df",
+        "sha512": "46f579b7e97d9db8c1e8cb1f8b16d1f7593128855a766ba0577a02612669f169367f4e75adf8c9665beb9d9d8c4da1480af265a7c04a9355162323f6d2074c6d"
+      },
+      "name": "fritoto-gate-publish,"
+    }
+  },
+  "policies": [
+    {
+      "id": "slsa-builder-id",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ]
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json"
+        }
+      }
+    },
+    {
+      "id": "slsa-build-type",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ]
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json"
+        }
+      }
+    },
+    {
+      "id": "slsa-build-point",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ],
+        "enforce": "ON"
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json"
+        }
+      }
+    },
+    {
+      "chain": [
+        {
+          "predicate": {
+            "selector": "has(predicates[0].data.buildDefinition) ? (\nhas(predicates[0].data.buildDefinition.resolvedDependencies) ? (\n  predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.buildPointRepo + '@'), dep)[0]\n) : '' \n) : ''",
+            "type": "https://slsa.dev/provenance/v1"
+          }
+        }
+      ],
+      "context": {
+        "buildPointRepo": {
+          "default": "git+ssh://github.com/carabiner-dev/demo-slsa-e2e",
+          "required": true,
+          "type": "string"
+        },
+        "builderImage": {
+          "default": "cgr.dev/chainguard/go",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "id": "slsa-source-level",
+      "identities": [
+        {
+          "sigstore": {
+            "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main",
+            "issuer": "https://token.actions.githubusercontent.com"
+          }
+        }
+      ],
+      "meta": {
+        "controls": [
+          {
+            "class": "SOURCE",
+            "framework": "SLSA",
+            "id": "1"
+          }
+        ],
+        "enforce": "ON"
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-source-level1.json"
+        }
+      }
+    },
+    {
+      "chain": [
+        {
+          "predicate": {
+            "selector": "has(predicates[0].data.buildDefinition) ? (\nhas(predicates[0].data.buildDefinition.resolvedDependencies) ? (\n  predicates[0].data.buildDefinition.resolvedDependencies.map(dep, dep.uri.startsWith(context.builderImage + '@'), dep.uri)[0].substring(context.builderImage.size() + 1)\n) : '' \n) : ''",
+            "type": "https://slsa.dev/provenance/v1"
+          }
+        }
+      ],
+      "context": {
+        "builderImage": {
+          "default": "cgr.dev/chainguard/go",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "id": "slsa-builder-image,",
+      "identities": [
+        {
+          "sigstore": {
+            "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main",
+            "issuer": "https://token.actions.githubusercontent.com"
+          }
+        }
+      ],
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-level3.json"
+        }
+      }
+    }
+  ]
 }
