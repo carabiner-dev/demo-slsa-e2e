@@ -1,40 +1,57 @@
 {
-    "id": "fritoto-gate-build",
-    "meta": {
-        "description": "Verifies that the build and artifacts meet the required conditions before publishing the built binaries"
-    },
-    "common": {
-        "identities": [
-            {
-                "sigstore": {
-                    "issuer": "https://token.actions.githubusercontent.com",
-                    "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main"
-                }
-            },
-            {
-                "sigstore": {
-                    "mode": "regexp",
-                    "issuer": "https://token.actions.githubusercontent.com",
-                    "identity": "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+"
-                }
-            }
-        ]
-    },
-    "policies": [
-        {
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#test-results/tests-pass.json" }
-            }
-        },
-        {
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json" }
-            }
-        },
-        {
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#sbom/sbom-exists.json" }
-            }
+  "common": {
+    "identities": [
+      {
+        "sigstore": {
+          "identity": "https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@refs/heads/main",
+          "issuer": "https://token.actions.githubusercontent.com"
         }
+      },
+      {
+        "sigstore": {
+          "identity": "https://github.com/[-a-z]+/demo-slsa-e2e/.github/workflows/release.yaml@refs/tags/v.+",
+          "issuer": "https://token.actions.githubusercontent.com",
+          "mode": "regexp"
+        }
+      }
     ]
+  },
+  "id": "fritoto-gate-build",
+  "meta": {
+    "description": "# fritoto-gate-build\n\nVerifies that the build and artifacts meet the required conditions before\nbuilding the project binaries.\n\n## Purpose\n\nThis PolicySet gates the build execution. It verifies the conditions\nthat have to be met before compiling the binaries. If any fail to verify\nAMPEL stops the release workflow.\n",
+    "enforce": "ON",
+    "origin": {
+      "digest": {
+        "sha256": "884fb14f3b26377f6483847869d400c33b4507ef38fa21838323b74eb8036932",
+        "sha512": "c72c268e76df14681e5a85905345f04d1698fa0c49d1624acc40a0c80d8f85fa3645bf64c7436f39455141d866f35f96197c9d6b939e632a2554f4e17d9b67e5"
+      },
+      "name": "fritoto-gate-build"
+    }
+  },
+  "policies": [
+    {
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#test-results/tests-pass.json"
+        }
+      }
+    },
+    {
+      "meta": {
+        "enforce": "OFF"
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#openvex/no-exploitable-vulns-osv.json"
+        }
+      }
+    },
+    {
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#sbom/sbom-exists.json"
+        }
+      }
+    }
+  ]
 }

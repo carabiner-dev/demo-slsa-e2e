@@ -22,8 +22,8 @@
     "enforce": "ON",
     "origin": {
       "digest": {
-        "sha256": "51b870797545a81993154ed73b3374ab287ecaa117d6ec9f8146bfeadd986eab",
-        "sha512": "0dd9b8121a0b996cd9cf74071d810e89c4030c5ab9a2f685b8fdc72ade345f4f4d1b04490e1a26b41f2695704bb866391b9d15ecc6066ac189921ea77a4e79a9"
+        "sha256": "10f0f6235066841d67d2aea2808ba2f2f7cb634b935ae2be70904b248dc37bd6",
+        "sha512": "e3a7e8ec3a444124a7ceedbe604b28ac2c30e30fe2443382daf321f1d7c0a8724b410588f7be930f73bb16844553abea8ac2bb9ae0fab6368a553efd407d978f"
       },
       "name": "fritoto-check-artifacts"
     }
@@ -52,6 +52,21 @@
       "source": {
         "location": {
           "uri": "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json"
+        }
+      }
+    },
+    {
+      "context": {
+        "matchResourceUriBase": {
+          "value": true
+        },
+        "vsaResourceURI": {
+          "value": "https://github.com/carabiner-dev/demo-slsa-e2e/releases/download/"
+        }
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#vsa/vsa-verify-resourceuri.json"
         }
       }
     }

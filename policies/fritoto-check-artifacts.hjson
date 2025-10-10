@@ -59,6 +59,16 @@ the release process instead of checking the full body of evidence.
             source: {
                 location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/slsa-build-deps-level-3.json" }
             }
+        },
+        {
+            // Verify the expected resource URI in the artifacts VSA
+            context: {
+                vsaResourceURI: { value: "https://github.com/carabiner-dev/demo-slsa-e2e/releases/download/" },
+                matchResourceUriBase: { value: true },
+            },
+            source: {
+                location: { uri: "git+https://github.com/carabiner-dev/policies#vsa/vsa-verify-resourceuri.json" }
+            }
         }
     ]
 }

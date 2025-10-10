@@ -24,7 +24,7 @@
       }
     ]
   },
-  "id": "fritoto-gate-publish,",
+  "id": "fritoto-gate-publish",
   "meta": {
     "description": "# fritoto-gate-publish\n\nEnsures the SLSA level of the built binaries and dependencies before publishing\nthe release artifacts.\n\n## Purpose\n\nThis PolicySet verifies the SLSA build attestation of each of the binaries and\nthe project's dependencies (builder and source) according to the SLSA spec.\n\nThis set has five policies. The first verify the build provenance of each binary.\n\nThe. next policy chains the build provenance to the build point commit and\nchecks its SLSA source attestations to verify it is SLSA Source Level 3. \n\nFinally, we verify the VSA capturing the SLSA Build verification results from the\nbuild image policy.\n\nThis policy generates the verification summaries (VSAs) that users will be able\nto use to check the binaries.\n",
     "enforce": "ON",
@@ -36,10 +36,10 @@
     ],
     "origin": {
       "digest": {
-        "sha256": "175812c1dd152826cdd604aa14a35674c2f5073ef7a822cf8a2dde02026c03bd",
-        "sha512": "195fcb1023068374c404bf679ce7697e80b45e7a8736d58bb64e89fea5d9f5afa8cfcbc4411a83acd6c18131e7198f717e045d7649388599700008272c12e342"
+        "sha256": "5f0a7492293107076e0b732e54223a6ec4641cd6a2ff51bff652ed50f1c4e704",
+        "sha512": "22ce09021a82230fdcfaeb473b714dddbd424010d04a6576228e78a3a4eab50a2f25eac7d2e25f43e2270ddef11c6f02cbc0dbbebf00e4b53a129e839670b45c"
       },
-      "name": "fritoto-gate-publish,"
+      "name": "fritoto-gate-publish"
     }
   },
   "policies": [

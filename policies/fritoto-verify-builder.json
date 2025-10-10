@@ -1,59 +1,95 @@
 {
-    "id": "fritoto-verify-builder",
-    "meta": {
-        "description": "Verifies an artifact to check if it was built in Chainguard's SLSA_BUILD_LEVEL_3 build system",
-        "frameworks": [
-            {
-                "id": "SLSA",
-                "name": "Supply-Chain Levels for Software Artifacts"
-            }
-        ]
+  "common": {
+    "context": {
+      "buildPoint": {
+        "value": "(this is not set in the image attestations)"
+      },
+      "buildType": {
+        "value": "https://apko.dev/slsa-build-type@v1"
+      },
+      "builderId": {
+        "value": "https://github.com/chainguard-dev/terraform-provider-apko"
+      }
     },
-    "common": {
-        "context": {
-            "buildPoint": {
-                "value": "(this is not set in the image attestations)"
-            },
-            "builderId": {
-                "value": "https://github.com/chainguard-dev/terraform-provider-apko"
-            },
-            "buildType": {
-                "value": "https://apko.dev/slsa-build-type@v1"
-            }
-        },
-        "identities": [
-            {
-                "sigstore": {
-                    "issuer": "https://token.actions.githubusercontent.com",
-                    "identity": "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"
-                }
-            }
-        ]
-    },
-    "policies": [
-        {
-            "id": "slsa-builder-id",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json" }
-            },
-            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
-        },
-        {
-            "id": "slsa-build-type",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json" }
-            },
-            "meta": { "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ] }
-        },
-        {
-            "id": "slsa-build-point",
-            "source": {
-                "location": { "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json" }
-            },
-            "meta": {
-                "controls": [ { "framework": "SLSA", "class": "BUILD", "id": "LEVEL_3" } ],
-                "enforce": "OFF"
-            }
+    "identities": [
+      {
+        "sigstore": {
+          "identity": "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main",
+          "issuer": "https://token.actions.githubusercontent.com"
         }
+      }
     ]
+  },
+  "id": "fritoto-verify-builder",
+  "meta": {
+    "description": "# fritoto-verify-builder\n\nVerifies an artifact to check if it was built in Chainguard's SLSA_BUILD_LEVEL_3\nbuild system.\n\n## Purpose\n\nThis PolicySet performs the verification checks from the SLSA build spec on a \ncontainer image. This ensures that the image was built in the expcted build\nsystem. This policy specifically, set defines the required context values to\ncheck an image was built in Chainguard's SLSA 3 build system. \n",
+    "enforce": "ON",
+    "frameworks": [
+      {
+        "id": "SLSA",
+        "name": "Supply-Chain Levels for Software Artifacts"
+      }
+    ],
+    "origin": {
+      "digest": {
+        "sha256": "b2eb5eca2f5f09f4c55d99cf52a30ba941a3d037a1e046a1ff9378adc3061500",
+        "sha512": "316432784516a25b38fea7fd483992eebb8b9ed2ca593690df9e8e0bfac6b707383ea79ede9fc607d71cb94d11f922f3cc10e6f4c187cbe1481ccb90a25570d7"
+      },
+      "name": "fritoto-verify-builder"
+    }
+  },
+  "policies": [
+    {
+      "id": "slsa-builder-id",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ]
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-builder-id.json"
+        }
+      }
+    },
+    {
+      "id": "slsa-build-type",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ]
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-type.json"
+        }
+      }
+    },
+    {
+      "id": "slsa-build-point",
+      "meta": {
+        "controls": [
+          {
+            "class": "BUILD",
+            "framework": "SLSA",
+            "id": "LEVEL_3"
+          }
+        ],
+        "enforce": "OFF"
+      },
+      "source": {
+        "location": {
+          "uri": "git+https://github.com/carabiner-dev/policies#slsa/slsa-build-point.json"
+        }
+      }
+    }
+  ]
 }
